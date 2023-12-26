@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.TextGenerator", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.TextGenerator.WebApp", "Brimborium.TextGenerator.WebApp\Brimborium.TextGenerator.WebApp.csproj", "{F9C5F31A-CA35-47B3-B752-11706B8FA832}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.TextGenerator.AppSample", "Brimborium.TextGenerator.AppSample\Brimborium.TextGenerator.AppSample.csproj", "{EF1A4347-071F-48F7-A30F-C4743558E50E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.TextGenerator.Test", "Brimborium.TextGenerator.Test\Brimborium.TextGenerator.Test.csproj", "{C39B1455-B931-4C67-BC7E-34043725E1A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{F9C5F31A-CA35-47B3-B752-11706B8FA832}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F9C5F31A-CA35-47B3-B752-11706B8FA832}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F9C5F31A-CA35-47B3-B752-11706B8FA832}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF1A4347-071F-48F7-A30F-C4743558E50E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF1A4347-071F-48F7-A30F-C4743558E50E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF1A4347-071F-48F7-A30F-C4743558E50E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF1A4347-071F-48F7-A30F-C4743558E50E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C39B1455-B931-4C67-BC7E-34043725E1A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C39B1455-B931-4C67-BC7E-34043725E1A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C39B1455-B931-4C67-BC7E-34043725E1A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C39B1455-B931-4C67-BC7E-34043725E1A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -18,11 +18,13 @@ public class TGWriter : ITGWriter
         this._ListTGRun.Add(run);
     }
 
-    public void Write(StringBuilder sbOut)
+    public StringBuilder Write(StringBuilder? sbOut=default)
     {
+        if (sbOut == null) { sbOut = new StringBuilder(); }
         foreach (var tgRun in this._ListTGRun)
         {
             tgRun.AppendText(sbOut);
         }
+        return sbOut;
     }
 }
