@@ -27,6 +27,9 @@ public sealed class ASTPlaceholder(
     }
     public ASTNode this[int index] { get { return this.List[index]; } }
     public int Count { get { return this.List.Count; } }
+
+    public StringSlice Tag => this.StartToken.Tag;
+
     public IEnumerator<ASTNode> GetEnumerator() => this.List.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => this.List.GetEnumerator();
 
