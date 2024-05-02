@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Brimborium.TextGenerator.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "--Input \"D:\\github.com\\FlorianGrimm\\Brimborium.TextGenerator3\\sample\\input1.txt\""
+    }
+  }
+}
