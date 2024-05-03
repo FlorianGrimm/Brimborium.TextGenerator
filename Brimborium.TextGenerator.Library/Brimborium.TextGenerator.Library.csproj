@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Brimborium.TextGenerator.Contracts\Brimborium.TextGenerator.Contracts.csproj" />
     <ProjectReference Include="..\Brimborium.Text\Brimborium.Text.csproj" />
   </ItemGroup>
 

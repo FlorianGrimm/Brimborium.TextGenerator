@@ -3,21 +3,22 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.TextGenerator.Library", "Brimborium.TextGenerator.Library\Brimborium.TextGenerator.Library.csproj", "{B8E6ED0C-1EAA-4521-9C34-4C2B1F8C493F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.TextGenerator.Library", "Brimborium.TextGenerator.Library\Brimborium.TextGenerator.Library.csproj", "{B8E6ED0C-1EAA-4521-9C34-4C2B1F8C493F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.TextGenerator.Console", "Brimborium.TextGenerator.Console\Brimborium.TextGenerator.Console.csproj", "{E49478C4-3949-464E-8C86-3441EF78B0E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.TextGenerator.Console", "Brimborium.TextGenerator.Console\Brimborium.TextGenerator.Console.csproj", "{E49478C4-3949-464E-8C86-3441EF78B0E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.TextGenerator.Library.Test", "Brimborium.TextGenerator.Library.Test\Brimborium.TextGenerator.Library.Test.csproj", "{CF600A80-1B5B-48AD-85B5-CDEC5E9A86C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.TextGenerator.Library.Test", "Brimborium.TextGenerator.Library.Test\Brimborium.TextGenerator.Library.Test.csproj", "{CF600A80-1B5B-48AD-85B5-CDEC5E9A86C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.Text", "Brimborium.Text\Brimborium.Text.csproj", "{8C9F2698-2BDB-4867-9DAD-53C5BB3B1B7E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Text", "Brimborium.Text\Brimborium.Text.csproj", "{8C9F2698-2BDB-4867-9DAD-53C5BB3B1B7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.TextGenerator.Web", "Brimborium.TextGenerator.Web\Brimborium.TextGenerator.Web.csproj", "{20667C64-BC1E-4B0C-B6D6-7B860FD52786}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brimborium.TextGenerator.Contracts", "Brimborium.TextGenerator.Contracts\Brimborium.TextGenerator.Contracts.csproj", "{FB8646F2-2BC0-44ED-BC7F-B71E5E235182}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B8E6ED0C-1EAA-4521-9C34-4C2B1F8C493F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -36,5 +37,19 @@ Global
 		{8C9F2698-2BDB-4867-9DAD-53C5BB3B1B7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C9F2698-2BDB-4867-9DAD-53C5BB3B1B7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C9F2698-2BDB-4867-9DAD-53C5BB3B1B7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20667C64-BC1E-4B0C-B6D6-7B860FD52786}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20667C64-BC1E-4B0C-B6D6-7B860FD52786}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20667C64-BC1E-4B0C-B6D6-7B860FD52786}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20667C64-BC1E-4B0C-B6D6-7B860FD52786}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB8646F2-2BC0-44ED-BC7F-B71E5E235182}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB8646F2-2BC0-44ED-BC7F-B71E5E235182}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB8646F2-2BC0-44ED-BC7F-B71E5E235182}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB8646F2-2BC0-44ED-BC7F-B71E5E235182}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9B51D1FD-FBDE-44E6-AFD7-B16E7832222C}
 	EndGlobalSection
 EndGlobal

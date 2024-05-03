@@ -4,9 +4,8 @@ public abstract class ASTNode {
     protected ASTNode() {
     }
 
-    public virtual void Accept(ASTVisitor visitor) {
-    }
-    public virtual void AcceptChildren(ASTVisitor visitor) {
-    }
+    public abstract void VisitorAccept(IASTVisitor visitor);
+    public abstract void VisitorAcceptChildren(IASTVisitor visitor);
+    public abstract ASTTransformResult<T> TransformerAccept<T>(IASTTransformer<T> transformer);
 }
 

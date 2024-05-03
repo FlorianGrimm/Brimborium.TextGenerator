@@ -6,8 +6,8 @@ namespace Brimborium.TextGenerator;
 public sealed class ASTConstant(StringSlice content) : ASTNode {
     public StringSlice Content { get; } = content;
 
-    public override void Accept(ASTVisitor visitor) { visitor.VisitConstant(this); }
-    public override void AcceptChildren(ASTVisitor visitor) { }
+    public override void VisitorAccept(IASTVisitor visitor) { visitor.VisitConstant(this); }
+    public override void VisitorAcceptChildren(IASTVisitor visitor) { }
 
     public override string ToString() => $"ParserASTConstant #{this.Content}";
 

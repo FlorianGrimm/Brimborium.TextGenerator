@@ -8,14 +8,16 @@ public sealed class ASTPlaceholder(
     List<ASTNode> list,
     ASTToken finishToken
     ) : ASTNode, IEnumerable<ASTNode> {
-    public override void Accept(ASTVisitor visitor) { visitor.VisitPlaceholder(this); }
-    public override void AcceptChildren(ASTVisitor visitor) {
-        this.StartToken.Accept(visitor);
+    public override void VisitorAccept(IASTVisitor visitor) { visitor.VisitPlaceholder(this); }
+    public override void VisitorAcceptChildren(IASTVisitor visitor) {
+        this.StartToken.VisitorAccept(visitor);
         foreach (var item in this.List) {
-            item.Accept(visitor);
+            item.VisitorAccept(visitor);
         }
-        this.FinishToken.Accept(visitor);
+        this.FinishToken.VisitorAccept(visitor);
     }
+
+    public override ASTTransformResult<T> TransformerAccept<T>(IASTTransformer<T> transformer) => transformer.VisitPlaceholder(this);
 
     public ASTToken StartToken { get; set; } = startToken;
     public List<ASTNode> List { get; } = list;

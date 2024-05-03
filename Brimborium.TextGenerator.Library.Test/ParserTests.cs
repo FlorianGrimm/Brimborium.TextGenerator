@@ -9,7 +9,7 @@ public class ParserTests {
         Assert.Equal(5, act.Count);
 
         var visitor = new ASTVisitorToString();
-        act.Accept(visitor);
+        act.VisitorAccept(visitor);
         Assert.Equal("1/* <a> */2/* </a> */3", visitor.ToString());
     }
 
@@ -21,7 +21,7 @@ public class ParserTests {
         Assert.Equal(3, act.Count);
 
         var visitor = new ASTVisitorToString();
-        act.Accept(visitor);
+        act.VisitorAccept(visitor);
         Assert.Equal("1/* <a> */2/* </a> */3", visitor.ToString());
     }
 }
