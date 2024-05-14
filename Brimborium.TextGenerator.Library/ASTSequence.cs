@@ -10,7 +10,8 @@ public sealed class ASTSequence(List<ASTNode>? list = default) : ASTNode, IEnume
             item.VisitorAccept(visitor);
         }
     }
-    public override ASTTransformResult<T> TransformerAccept<T>(IASTTransformer<T> transformer) => transformer.VisitSequence(this);
+    public override ASTNode TransformerAccept<T>(IASTTransformer<T> transformer, T state)
+        => transformer.VisitSequence(this, state);
 
     public List<ASTNode> List { get; } = list ?? [];
 

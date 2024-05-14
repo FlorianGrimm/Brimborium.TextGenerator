@@ -27,7 +27,7 @@ public sealed class ASTToken(
 
     public override void VisitorAccept(IASTVisitor visitor) { visitor.VisitToken(this); }
     public override void VisitorAcceptChildren(IASTVisitor visitor) { }
-    public override ASTTransformResult<T> TransformerAccept<T>(IASTTransformer<T> transformer) => transformer.VisitToken(this);
+    public override ASTNode TransformerAccept<T>(IASTTransformer<T> transformer, T state) => transformer.VisitToken(this, state);
     public override string ToString() => $"ParserASTToken #{this.Tag}";
     private string GetDebuggerDisplay() => $"ParserASTToken #{this.Tag}";
 }

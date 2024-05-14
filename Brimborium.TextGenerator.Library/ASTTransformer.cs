@@ -1,108 +1,96 @@
 ﻿namespace Brimborium.TextGenerator;
 
-public interface IASTTransformer<T>
-{
-    ASTTransformResult<T> VisitPlaceholder(ASTPlaceholder placeholder);
-    ASTTransformResult<T> VisitSequence(ASTSequence sequence);
-    ASTTransformResult<T> VisitChildrenSequence(ASTSequence sequence);
-    ASTTransformResult<T> VisitToken(ASTToken token);
+public interface IASTTransformer<T> {
+    ASTSequence VisitSequence(ASTSequence sequence, T state);
+    ASTPlaceholder VisitPlaceholder(ASTPlaceholder placeholder, T state);
+    ASTSequence VisitChildrenSequence(ASTSequence sequence, T state);
+    ASTToken VisitToken(ASTToken token, T state);
+    ASTNode VisitConstant(ASTConstant constant, T state);
 }
 
-public struct ASTTransformResult<T>(
-    T? instanceReplace = default,
-    List<T>? listReplace = default,
-    bool hasChanged = default)
-{
-    public T? InstanceReplace { get; } = instanceReplace;
-    public List<T>? ListReplace { get; } = listReplace;
-    public bool HasChanged { get; } = hasChanged;
-}
-
-public class ASTTransformer<T> : IASTTransformer<T>
-    where T:ASTTransformerState {
-    public ASTTransformer()
-    {
+public class ASTTransformer<T> : IASTTransformer<T> {
+    public virtual ASTSequence VisitSequence(ASTSequence sequence, T state) {
+        return this.VisitChildrenSequence(sequence, state);
     }
 
-    public virtual ASTTransformResult<T> VisitPlaceholder(ASTPlaceholder placeholder)
-    {
-        return default;
-    }
-    public virtual void HandlePlaceholder(ASTPlaceholder placeholder, ASTTransformResult<T> transformResult)
-    {
-        if (transformResult.HasChanged) {
-            if (transformResult.InstanceReplace is not null && transformResult.ListReplace is null) {
-                placeholder.
-                placeholder.Replace(transformResult.InstanceReplace);
-            } else if (transformResult.InstanceReplace is null && transformResult.ListReplace is not null) {
-                placeholder.Replace(transformResult.ListReplace);
+    public virtual ASTSequence VisitChildrenSequence(ASTSequence sequence, T state) {
+        var result = sequence;
+        for (int index = 0; index < sequence.List.Count; index++)
+        {
+            var item = sequence.List[index];
+            var itemResult = item.TransformerAccept(this, state);
+            if (ReferenceEquals(item, itemResult)) {
+                // no change
+                if (ReferenceEquals(sequence, result)) {
+                    // no change before
+                } else {
+                    result.List.Add(itemResult);
+                }
+            } else {
+                if (ReferenceEquals(sequence, result)) {
+                    result = new ASTSequence();
+                    for (int indexInner = 0; indexInner < index; indexInner++) {
+                        result.List.Add(sequence.List[indexInner]);
+                    }
+                } else { 
+                    result.List.Add(itemResult);
+                }
             }
         }
+        return result;
     }
 
-    public virtual ASTTransformResult<T> VisitSequence(ASTSequence sequence)
-    {
-        this.VisitChildrenSequence(sequence);
-        return default;
+    public virtual ASTNode VisitConstant(ASTConstant constant, T state) {
+        return constant;
     }
 
-    public virtual ASTTransformResult<T> VisitChildrenSequence(ASTSequence sequence)
-    {
-        //var result = new ASTTransformResult<T>(default, false);
-        foreach (var item in sequence.List)
-        {
-            //result = item.TransformerAccept(this);
-            // TODO: join
-            
+    public virtual ASTPlaceholder VisitPlaceholder(ASTPlaceholder placeholder, T state) {
+        return this.VisitPlaceholderChildren(placeholder, state);
+    }
+
+    public virtual ASTPlaceholder VisitPlaceholderChildren(ASTPlaceholder placeholder, T state) {
+        var result = placeholder;
+
+        var nextStartToken = this.VisitToken(placeholder.StartToken, state);
+        if (ReferenceEquals(placeholder.StartToken, nextStartToken)) {
+            // no change
+        } else { 
+            result = new ASTPlaceholder(nextStartToken, placeholder.List, placeholder.FinishToken);
         }
-        return default;
+
+        for (int index = 0; index < result.List.Count; index++) {
+            var item = result.List[index];
+            var itemResult = item.TransformerAccept(this, state);
+            if (ReferenceEquals(item, itemResult)) {
+                // no change
+                if (ReferenceEquals(placeholder, result)) {
+                    // no change before
+                } else {
+                    result.List.Add(itemResult);
+                }
+            } else {
+                if (ReferenceEquals(this, result)) {
+                    result = new ASTPlaceholder(placeholder.StartToken, placeholder.List[0..index], placeholder.FinishToken);
+                } else {
+                    result.List.Add(itemResult);
+                }
+            }
+        }
+
+        var nextFinishToken = this.VisitToken(placeholder.FinishToken, state);
+        if (ReferenceEquals(placeholder.FinishToken, nextFinishToken)) {
+            // no change
+        } else {
+            result = new ASTPlaceholder(result.StartToken, result.List, nextFinishToken);
+        }
+        return result;
     }
 
-    public virtual ASTTransformResult<T> VisitToken(ASTToken token)
-    {
-        return default;
+
+    public virtual ASTToken VisitToken(ASTToken token, T state) {
+        return token;
     }
 }
 
-public class ASTTransformerState {
-    public ASTTransformerState(
-        ) {
-        /*
-         
-         */
-    }
-}
-
-//public class ASTTransformerReplace : ASTTransformerReplace<T> { }
-public class ASTTransformerReplace<T> : ASTTransformer<T>
-    where T : ASTTransformerState {
-    private readonly Func<List<ASTPlaceholder>, ASTNode, ASTTransformResult<T>> _Convert;
-
-    public ASTTransformerReplace(
-        Func<List<ASTPlaceholder>, ASTNode, ASTTransformResult<T>> convert
-        )
-    {
-        this._Convert = convert;
-    }
-
-    public override ASTTransformResult<ASTTransformerState> VisitPlaceholder(ASTPlaceholder placeholder) {
-        return base.VisitPlaceholder(placeholder);
-
-        /*
-             var oldResults = this._Results;
-        this._Results = new List<ASTNode>();
-        var astPlaceholder = new ASTPlaceholder(
-            parserASTPlaceHolder.StartToken,
-            this._Results,
-            parserASTPlaceHolder.FinishToken
-        );
-        this._StackASTPlaceholder.Add(parserASTPlaceHolder);
-        foreach (var item in parserASTPlaceHolder.List) {
-            item.VisitorAccept(this);
-        }
-        this._StackASTPlaceholder.RemoveAt(this._StackASTPlaceholder.Count-1);
-        this._Results = oldResults;
-        this._Results.Add(astPlaceholder);
-         */
-    }
+public class ASTTransformerReplace<T> : ASTTransformer<T> { 
 }

@@ -17,8 +17,8 @@ public sealed class ASTPlaceholder(
         this.FinishToken.VisitorAccept(visitor);
     }
 
-    public override ASTTransformResult<T> TransformerAccept<T>(IASTTransformer<T> transformer) => transformer.VisitPlaceholder(this);
-
+    public override ASTNode TransformerAccept<T>(IASTTransformer<T> transformer, T state) => transformer.VisitPlaceholder(this, state);
+    
     public ASTToken StartToken { get; set; } = startToken;
     public List<ASTNode> List { get; } = list;
     public ASTToken FinishToken { get; set; } = finishToken;
@@ -31,6 +31,14 @@ public sealed class ASTPlaceholder(
     public int Count { get { return this.List.Count; } }
 
     public StringSlice Tag => this.StartToken.Tag;
+
+    public ASTPlaceholder WithStartToken(ASTNode startToken) {
+        throw new NotImplementedException();
+    }
+
+    public ASTPlaceholder WithFinishToken(ASTNode startToken) {
+        throw new NotImplementedException();
+    }
 
     public IEnumerator<ASTNode> GetEnumerator() => this.List.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => this.List.GetEnumerator();
