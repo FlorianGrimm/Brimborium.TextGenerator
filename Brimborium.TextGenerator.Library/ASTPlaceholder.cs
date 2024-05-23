@@ -32,12 +32,12 @@ public sealed class ASTPlaceholder(
 
     public StringSlice Tag => this.StartToken.Tag;
 
-    public ASTPlaceholder WithStartToken(ASTNode startToken) {
-        throw new NotImplementedException();
+    public ASTPlaceholder WithStartToken(ASTToken startToken) {
+        return new ASTPlaceholder(startToken, new List<ASTNode>(this.List), this.FinishToken);
     }
 
-    public ASTPlaceholder WithFinishToken(ASTNode startToken) {
-        throw new NotImplementedException();
+    public ASTPlaceholder WithFinishToken(ASTToken finishToken) {
+        return new ASTPlaceholder(this.StartToken, new List<ASTNode>(this.List), finishToken);
     }
 
     public IEnumerator<ASTNode> GetEnumerator() => this.List.GetEnumerator();

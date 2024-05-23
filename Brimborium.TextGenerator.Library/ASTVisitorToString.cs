@@ -1,6 +1,10 @@
 ﻿namespace Brimborium.TextGenerator;
 
-public class ASTVisitorToString : ASTVisitor {
+public sealed class ASTVisitorToString : ASTVisitor {
+    private static ASTVisitorToString? _Instance;
+    public static ASTVisitorToString Instance => _Instance ??= new ASTVisitorToString();
+
+
     private readonly StringBuilder _Result;
 
     public ASTVisitorToString() {

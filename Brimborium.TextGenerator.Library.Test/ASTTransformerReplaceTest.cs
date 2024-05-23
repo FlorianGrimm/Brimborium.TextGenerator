@@ -1,6 +1,6 @@
 ﻿namespace Brimborium.TextGenerator;
-#if false
-public class ReplaceTests {
+public class ASTTransformerReplaceTest {
+
     [Fact]
     public void Replace01Parse() {
         Parser sut = Parser.CreateForCSharp();
@@ -16,15 +16,14 @@ public class ReplaceTests {
 
         ASTNode? actCopy = null;
         {
-            var visitorReplace = new ASTVisitorReplace(
-                (stack, current) => {
-                    if (stack.Peek().Tag.Equals("a")) {
-                        return new ASTConstant("XXX");
-                    }
-                    return current;
+            var transformerReplace = new ASTTransformerReplace<int>(
+                replacePlaceholder: (that, placeholder, state) => {
+                    //if (placeholder.Tag.Equals("a")) {
+                    //    return new ASTConstant("XXX");
+                    //}
+                    return placeholder;
                 });
-            act.VisitorAccept(visitorReplace);
-            actCopy = visitorReplace.GetResult();
+            actCopy = act.TransformerAccept(transformerReplace, 0);
         }
 
         {
@@ -33,6 +32,10 @@ public class ReplaceTests {
             Assert.Equal("1/* <a> */XXX/* </a> */3", visitorToString.ToString());
         }
     }
+
+
+#if false
+    
 
     [Fact]
     public void Replace02Parse() {
@@ -69,5 +72,5 @@ public class ReplaceTests {
         }
     }
 
-}
 #endif
+}

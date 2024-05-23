@@ -3,22 +3,28 @@
 public interface IASTTransformer<T> {
     ASTSequence VisitSequence(ASTSequence sequence, T state);
     ASTPlaceholder VisitPlaceholder(ASTPlaceholder placeholder, T state);
-    ASTSequence VisitChildrenSequence(ASTSequence sequence, T state);
+    ASTSequence TransformSequence(ASTSequence sequence, T state);
     ASTToken VisitToken(ASTToken token, T state);
     ASTNode VisitConstant(ASTConstant constant, T state);
 }
 
 public class ASTTransformer<T> : IASTTransformer<T> {
+    // called by the ASTNode
     public virtual ASTSequence VisitSequence(ASTSequence sequence, T state) {
-        return this.VisitChildrenSequence(sequence, state);
+        return this.TransformSequence(sequence, state);
     }
 
-    public virtual ASTSequence VisitChildrenSequence(ASTSequence sequence, T state) {
+    // override this to change the behavior
+    public virtual ASTSequence TransformSequence(ASTSequence sequence, T state)
+        => this.TransformSequence(sequence, state);
+
+    // call the children
+    public virtual ASTSequence WalkSequence(ASTSequence sequence, T state) {
         var result = sequence;
         for (int index = 0; index < sequence.List.Count; index++)
         {
             var item = sequence.List[index];
-            var itemResult = item.TransformerAccept(this, state);
+            var itemResult = this.TransformSequenceChild(sequence, item, index, state);
             if (ReferenceEquals(item, itemResult)) {
                 // no change
                 if (ReferenceEquals(sequence, result)) {
@@ -40,15 +46,27 @@ public class ASTTransformer<T> : IASTTransformer<T> {
         return result;
     }
 
-    public virtual ASTNode VisitConstant(ASTConstant constant, T state) {
-        return constant;
-    }
+    // override this to change the behavior
+    protected virtual ASTNode TransformSequenceChild(ASTSequence sequence, ASTNode item, int index, T state)
+        => item.TransformerAccept(this, state);
 
-    public virtual ASTPlaceholder VisitPlaceholder(ASTPlaceholder placeholder, T state) {
-        return this.VisitPlaceholderChildren(placeholder, state);
-    }
+    // called by the ASTNode
+    public virtual ASTNode VisitConstant(ASTConstant constant, T state) 
+        => this.TransformConstant(constant, state);
 
-    public virtual ASTPlaceholder VisitPlaceholderChildren(ASTPlaceholder placeholder, T state) {
+    // override this to change the behavior
+    public virtual ASTNode TransformConstant(ASTConstant constant, T state) 
+        => constant;
+
+    // called by the ASTNode
+    public virtual ASTPlaceholder VisitPlaceholder(ASTPlaceholder placeholder, T state) 
+        => this.TransformPlaceholder(placeholder, state);
+
+    // override this to change the behavior
+    public virtual ASTPlaceholder TransformPlaceholder(ASTPlaceholder placeholder, T state)
+        => this.WalkPlaceholder(placeholder, state);
+
+    public virtual ASTPlaceholder WalkPlaceholder(ASTPlaceholder placeholder, T state) {
         var result = placeholder;
 
         var nextStartToken = this.VisitToken(placeholder.StartToken, state);
@@ -60,7 +78,8 @@ public class ASTTransformer<T> : IASTTransformer<T> {
 
         for (int index = 0; index < result.List.Count; index++) {
             var item = result.List[index];
-            var itemResult = item.TransformerAccept(this, state);
+            
+            var itemResult = this.TransformPlaceholderChild(result, item, index, state);
             if (ReferenceEquals(item, itemResult)) {
                 // no change
                 if (ReferenceEquals(placeholder, result)) {
@@ -86,11 +105,15 @@ public class ASTTransformer<T> : IASTTransformer<T> {
         return result;
     }
 
+    // override this to change the behavior
+    protected virtual ASTNode TransformPlaceholderChild(ASTPlaceholder placeholder, ASTNode item, int index, T state) 
+        => item.TransformerAccept(this, state);
 
-    public virtual ASTToken VisitToken(ASTToken token, T state) {
-        return token;
-    }
-}
+    // called by the ASTNode
+    public virtual ASTToken VisitToken(ASTToken token, T state) 
+        => this.TransformToken(token, state);
 
-public class ASTTransformerReplace<T> : ASTTransformer<T> { 
+    // override this to change the behavior
+    public virtual ASTToken TransformToken(ASTToken token, T state) 
+        => token;
 }
