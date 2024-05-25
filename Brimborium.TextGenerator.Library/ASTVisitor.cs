@@ -1,20 +1,34 @@
 ﻿namespace Brimborium.TextGenerator;
-public interface IASTVisitor {
-    void VisitChildrenPlaceholder(ASTPlaceholder parserASTPlaceHolder);
-    void VisitChildrenSequence(ASTSequence parserASTSequence);
-    void VisitConstant(ASTConstant parserASTConstant);
-    void VisitPlaceholder(ASTPlaceholder parserASTPlaceHolder);
-    void VisitSequence(ASTSequence parserASTSequence);
-    void VisitToken(ASTToken parserASTToken);
+public interface IASTVisitor<T> {
+    void VisitConstant(ASTConstant parserASTConstant, T state);
+    void VisitPlaceholder(ASTPlaceholder parserASTPlaceHolder, T state);
+    void VisitSequence(ASTSequence parserASTSequence, T state);
+    void VisitToken(ASTToken parserASTToken, T state);
 }
-public class ASTVisitor :IASTVisitor{
-    public virtual void VisitConstant(ASTConstant parserASTConstant) {  }
 
-    public virtual void VisitSequence(ASTSequence parserASTSequence) => this.VisitChildrenSequence(parserASTSequence);
-    public virtual void VisitChildrenSequence(ASTSequence parserASTSequence) => parserASTSequence.VisitorAcceptChildren(this);
+public class ASTVisitor<T> : IASTVisitor<T> {
+    public virtual void VisitConstant(ASTConstant parserASTConstant, T state) { }
 
-    public virtual void VisitToken(ASTToken parserASTToken) { }
+    public virtual void VisitSequence(ASTSequence parserASTSequence, T state) 
+        => this.WalkSequence(parserASTSequence, state);
 
-    public virtual void VisitPlaceholder(ASTPlaceholder parserASTPlaceHolder) => this.VisitChildrenPlaceholder(parserASTPlaceHolder);
-    public virtual void VisitChildrenPlaceholder(ASTPlaceholder parserASTPlaceHolder) => parserASTPlaceHolder.VisitorAcceptChildren(this);
+    public virtual void WalkSequence(ASTSequence parserASTSequence, T state) {
+        for (int index = 0; index < parserASTSequence.List.Count; index++) {
+            var item = parserASTSequence.List[index];
+            item.VisitorAccept(this, state);
+        }
+    }
+
+    public virtual void VisitToken(ASTToken parserASTToken, T state) { }
+
+    public virtual void VisitPlaceholder(ASTPlaceholder parserASTPlaceHolder, T state) 
+        => this.WalkPlaceholder(parserASTPlaceHolder, state);
+
+    public virtual void WalkPlaceholder(ASTPlaceholder parserASTPlaceHolder, T state) {
+        parserASTPlaceHolder.StartToken.VisitorAccept(this, state);
+        foreach (var item in parserASTPlaceHolder.List) {
+            item.VisitorAccept(this, state);
+        }
+        parserASTPlaceHolder.FinishToken.VisitorAccept(this, state);
+    }
 }

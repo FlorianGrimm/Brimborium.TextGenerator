@@ -119,6 +119,16 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
         }
     }
 
+    [System.Text.Json.Serialization.JsonIgnore()]
+    public bool IsEmpty {
+        get {
+            // shortcut because this.Range is from start
+            var offset = this.Range.Start.Value;
+            var end = this.Range.End.Value;
+            return offset == end;
+        }
+    }
+
     public override string ToString() {
         var offset = this.Range.Start.Value;
         var end = this.Range.End.Value;
@@ -394,10 +404,14 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
     }
 
     public bool Equals(StringSlice other, StringComparison comparisonType = StringComparison.Ordinal) {
-        var t = this.AsSpan();
-        var o = other.AsSpan();
-        if (t.Length != o.Length) { return false; }
-        return t.StartsWith(o, comparisonType);
+        if (ReferenceEquals(this.Text, other.Text)) {
+            return this.Range.Equals(other.Range);
+        } else {
+            var t = this.AsSpan();
+            var o = other.AsSpan();
+            if (t.Length != o.Length) { return false; }
+            return t.StartsWith(o, comparisonType);
+        }
     }
 
     public bool Equals(ReadOnlySpan<char> other, StringComparison comparisonType = StringComparison.Ordinal) {
@@ -408,7 +422,7 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
 
     public override int GetHashCode() => string.GetHashCode(this.AsSpan());
 
-    public Enumerator GetEnumerator() => new Enumerator(this.AsSpan());
+    public CharEnumerator GetEnumerator() => new CharEnumerator(this.AsSpan());
 
     public StringSlice Replace(char from, char to) {
         if (0 == this.Length) { return this; }
@@ -443,12 +457,12 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
         }
     }
 
-    public ref struct Enumerator {
+    public ref struct CharEnumerator {
         private readonly ReadOnlySpan<char> _Span;
         private int _Index;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Enumerator(ReadOnlySpan<char> span) {
+        internal CharEnumerator(ReadOnlySpan<char> span) {
             _Span = span;
             _Index = -1;
         }
@@ -472,6 +486,10 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
 
     public static implicit operator StringSlice(string? value)
         => new StringSlice(value ?? string.Empty);
+
+    public static bool operator ==(StringSlice left, StringSlice right) => left.Equals(right, StringComparison.Ordinal);
+    public static bool operator !=(StringSlice left, StringSlice right) => !(left.Equals(right, StringComparison.Ordinal));
 }
+
 public readonly record struct SplitInto(StringSlice Found, StringSlice Tail);
 public record struct StringSliceState(string Text, Range Range);

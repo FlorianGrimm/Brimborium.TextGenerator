@@ -8,34 +8,23 @@ public class ASTTransformerReplaceTest {
         var act = sut.Parse(content);
         Assert.Equal(3, act.Count);
 
-        {
-            var visitorToString = new ASTVisitorToString();
-            act.VisitorAccept(visitorToString);
-            Assert.Equal("1/* <a> */2/* </a> */3", visitorToString.ToString());
-        }
+        Assert.Equal("1/* <a> */2/* </a> */3", ASTTreeToString.GetAsString(act));
 
         ASTNode? actCopy = null;
         {
             var transformerReplace = new ASTTransformerReplace<int>(
-                replacePlaceholder: (that, placeholder, state) => {
-                    //if (placeholder.Tag.Equals("a")) {
-                    //    return new ASTConstant("XXX");
-                    //}
+                replacePlaceholder: (transformer, placeholder, state) => {
+                    if (placeholder.Tag.Equals("a", StringComparison.Ordinal)) {
+                        return placeholder.WithList([new ASTConstant("XXX")]);
+                    }
                     return placeholder;
                 });
             actCopy = act.TransformerAccept(transformerReplace, 0);
         }
 
-        {
-            var visitorToString = new ASTVisitorToString();
-            actCopy?.VisitorAccept(visitorToString);
-            Assert.Equal("1/* <a> */XXX/* </a> */3", visitorToString.ToString());
-        }
+        Assert.NotNull(actCopy);
+        Assert.Equal("1/* <a> */XXX/* </a> */3", ASTTreeToString.GetAsString(actCopy));
     }
-
-
-#if false
-    
 
     [Fact]
     public void Replace02Parse() {
@@ -43,34 +32,20 @@ public class ASTTransformerReplaceTest {
         string content = "1/* <a> */2/* </a> */3";
         var act = sut.Parse(content);
         Assert.Equal(3, act.Count);
-
-        {
-            var visitorToString = new ASTVisitorToString();
-            act.VisitorAccept(visitorToString);
-            Assert.Equal("1/* <a> */2/* </a> */3", visitorToString.ToString());
-        }
+        Assert.Equal("1/* <a> */2/* </a> */3", ASTTreeToString.GetAsString(act));
 
         ASTNode? actCopy = null;
         {
-            var visitorReplace = new ASTTransformerReplace<ASTTransformerState>(
-                (stack, current) => {
-                    if (stack.Peek().Tag.Equals("a")) {
-                        return new ASTConstant("XXX");
+            var transformerReplace = new ASTTransformerReplace<int>(
+                replacePlaceholder: (transformer, placeholder, state) => {
+                    if (placeholder.Tag.Equals("a", StringComparison.Ordinal)) {
+                        return placeholder.WithList([new ASTConstant("XXX")]);
                     }
-                    return current;
-                }
-
-                );
-            act.VisitorAccept(visitorReplace);
-            actCopy = visitorReplace.GetResult();
+                    return placeholder;
+                });
+            actCopy = act.TransformerAccept(transformerReplace, 0);
         }
 
-        {
-            var visitorToString = new ASTVisitorToString();
-            actCopy?.VisitorAccept(visitorToString);
-            Assert.Equal("1/* <a> */XXX/* </a> */3", visitorToString.ToString());
-        }
+        Assert.Equal("1/* <a> */XXX/* </a> */3", ASTTreeToString.GetAsString(actCopy));
     }
-
-#endif
 }

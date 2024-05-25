@@ -4,12 +4,9 @@ namespace Brimborium.TextGenerator;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class ASTSequence(List<ASTNode>? list = default) : ASTNode, IEnumerable<ASTNode> {
-    public override void VisitorAccept(IASTVisitor visitor) { visitor.VisitSequence(this); }
-    public override void VisitorAcceptChildren(IASTVisitor visitor) {
-        foreach (var item in this.List) {
-            item.VisitorAccept(visitor);
-        }
-    }
+    public override void VisitorAccept<T>(IASTVisitor<T> visitor, T state)
+        => visitor.VisitSequence(this, state);
+    
     public override ASTNode TransformerAccept<T>(IASTTransformer<T> transformer, T state)
         => transformer.VisitSequence(this, state);
 
