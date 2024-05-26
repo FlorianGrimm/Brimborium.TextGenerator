@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Brimborium.TextGenerator;
+﻿namespace Brimborium.TextGenerator;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class ASTSequence(List<ASTNode>? list = default) : ASTNode, IEnumerable<ASTNode> {

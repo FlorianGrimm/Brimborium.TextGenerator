@@ -1,4 +1,6 @@
-﻿namespace Brimborium.TextGenerator;
+﻿using Brimborium.TextGenerator.Contracts;
+
+namespace Brimborium.TextGenerator;
 
 public class Parser {
     private readonly Regex _RegexStartEndComment;
@@ -29,30 +31,35 @@ public class Parser {
         ASTSequence current = new();
 
         foreach (var item in listFlat) {
-            if (item is ASTToken token) {
-                if (token.IsStartTag) {
+            {
+                if (item is ASTStartToken startToken) {
                     stack.Push(current);
                     current = new ASTSequence();
-                    current.List.Add(token);
+                    current.List.Add(startToken);
                     continue;
-                } else if (token.IsFinishTag) {
+                }
+            }
+            {
+                if (item is ASTFinishToken finishToken) {
                     var list = current.List;
                     if ((list.Count == 0)
-                        || !(list[0] is ASTToken startToken)) {
-                        throw new InvalidOperationException($"No start tag {token.Tag}");
+                        || !(list[0] is ASTStartToken startToken)) {
+                        throw new InvalidOperationException($"No start tag {finishToken.Tag}");
                     }
                     list.RemoveAt(0);
                     var parserASTPlaceholder = new ASTPlaceholder(
                         startToken,
                         list,
-                        token);
+                        finishToken);
 
                     current = stack.Pop();
                     current.List.Add(parserASTPlaceholder);
                     continue;
                 }
             }
-            current.Add(item);
+            {
+                current.Add(item);
+            }
         }
         return current;
     }
@@ -70,19 +77,9 @@ public class Parser {
                     result.Add(new ASTConstant(contentBefore));
                 }
             }
-            {
-                var complete = GetStringSliceFromMatch(ssContent, match, 0);
-                var prefix = GetStringSliceFromMatch(ssContent, match, 2);
-                var tag = GetStringSliceFromMatch(ssContent, match, 3);
-                var parameter = GetStringSliceFromMatch(ssContent, match, 4);
-                var parseParameterResult = ParseParameter(parameter);
-#warning errorhandling parseParameterResult.Remainder
-                var token = ASTToken.Create(complete, prefix, tag, parameter, parseParameterResult.ListParameter);
-                result.Add(token);
-            }
-            {
-                indexLast = match.Index + match.Length;
-            }
+            var token = this.ScanMatch(ssContent, match);
+            result.Add(token);
+            indexLast = match.Index + match.Length;
         }
         {
             var contentRest = content.Substring(indexLast);
@@ -91,6 +88,26 @@ public class Parser {
             }
         }
         return result;
+    }
+
+    private ASTNode ScanMatch(StringSlice ssContent, Match match) {
+        //                        1          2        3         4      5    6 
+        //_regexCSharp ??= new(@"([/][*]\s*)([<][/]?)([^> \t]+)([^>]*)([>])(\s*[*][/])", RegexOptions.Compiled);
+        //var complete = GetStringSliceFromMatch(ssContent, match, 0);
+        var prefix = GetStringSliceFromMatch(ssContent, match, 2);
+        var tag = GetStringSliceFromMatch(ssContent, match, 3);
+        var parameter = GetStringSliceFromMatch(ssContent, match, 4);
+        if (prefix.Equals("</")) {
+            var finishToken = new ASTFinishToken(tag);
+            return finishToken;
+        } else {
+            var parseParameterResult = ParseParameter(parameter);
+            if (!parseParameterResult.Remainder.IsEmpty) {
+                throw new InvalidOperationException($"Syntax Error {parameter}");
+            }
+            var startToken = new ASTStartToken(tag, parseParameterResult.ListParameter.ToImmutableList());
+            return startToken;
+        }
     }
 
     private static readonly char[] _ArrCharWhitespace = new char[] { ' ', '\t', '\n', '\r' };
@@ -103,48 +120,47 @@ public class Parser {
 
     public static ASTParseParameterResult ParseParameter(StringSlice ssParameter) {
         List<ASTParameter> result = new();
-        var ssCurrent = ssParameter;
-        ssCurrent = ssCurrent.TrimStart(_ArrCharWhitespace);
-        if (ssCurrent.IsEmpty) {
+        ssParameter = ssParameter.TrimStart(_ArrCharWhitespace);
+        if (ssParameter.IsEmpty) {
             return new(result, ssParameter);
         }
-        while (!ssCurrent.IsEmpty) {
-            bool nameIsQuoted = (_ArrCharDoubleQuote.ReadWhileMatches(ref ssCurrent, 1, out var _));
+        while (!ssParameter.IsEmpty) {
+            bool nameIsQuoted = (_ArrCharDoubleQuote.ReadWhileMatches(ref ssParameter, 1, out var _));
             StringSlice ssName;
             if (nameIsQuoted) {
-                if (!_ArrCharNameEndDoubleQuoted.ReadWhileNotMatches(ref ssCurrent, 256, out ssName)) {
+                if (!_ArrCharNameEndDoubleQuoted.ReadWhileNotMatches(ref ssParameter, 256, out ssName)) {
                     return new(result, ssParameter);
                 }
-                if (!_ArrCharDoubleQuote.ReadWhileMatches(ref ssCurrent, 1, out var _)) {
+                if (!_ArrCharDoubleQuote.ReadWhileMatches(ref ssParameter, 1, out var _)) {
                     return new(result, ssParameter);
                 }
-            } else { 
-                if (!_ArrCharNameEndNotQuoted.ReadWhileNotMatches(ref ssCurrent, 256, out ssName)) {
+            } else {
+                if (!_ArrCharNameEndNotQuoted.ReadWhileNotMatches(ref ssParameter, 256, out ssName)) {
                     return new(result, ssParameter);
                 }
             }
 
-            ssCurrent = ssCurrent.TrimStart(_ArrCharWhitespace);
-            if (!(_ArrCharEqual.ReadWhileMatches(ref ssCurrent, 1, out var _))) {
+            ssParameter = ssParameter.TrimStart(_ArrCharWhitespace);
+            if (!(_ArrCharEqual.ReadWhileMatches(ref ssParameter, 1, out var _))) {
                 return new(result, ssParameter);
             }
-            ssCurrent = ssCurrent.TrimStart(_ArrCharWhitespace);
-            bool valueIsQuoted = (_ArrCharDoubleQuote.ReadWhileMatches(ref ssCurrent, 1, out var _));
+            ssParameter = ssParameter.TrimStart(_ArrCharWhitespace);
+            bool valueIsQuoted = (_ArrCharDoubleQuote.ReadWhileMatches(ref ssParameter, 1, out var _));
             StringSlice ssValue;
             if (valueIsQuoted) {
-                if (!_ArrCharValueEndDoubleQuoted.ReadWhileNotMatches(ref ssCurrent, 4096, out ssValue)) {
+                if (!_ArrCharValueEndDoubleQuoted.ReadWhileNotMatches(ref ssParameter, 4096, out ssValue)) {
                     return new(result, ssParameter);
                 }
-                if (!_ArrCharDoubleQuote.ReadWhileMatches(ref ssCurrent, 1, out var _)) {
+                if (!_ArrCharDoubleQuote.ReadWhileMatches(ref ssParameter, 1, out var _)) {
                     return new(result, ssParameter);
                 }
-            } else { 
-                if (!_ArrCharValueEndNotQuoted.ReadWhileNotMatches(ref ssCurrent, 4096, out ssValue)) {
+            } else {
+                if (!_ArrCharValueEndNotQuoted.ReadWhileNotMatches(ref ssParameter, 4096, out ssValue)) {
                     return new(result, ssParameter);
                 }
             }
             result.Add(new ASTParameter(ssName, ssValue));
-            ssCurrent = ssCurrent.TrimStart(_ArrCharWhitespace);
+            ssParameter = ssParameter.TrimStart(_ArrCharWhitespace);
         }
         return new(result, ssParameter);
     }

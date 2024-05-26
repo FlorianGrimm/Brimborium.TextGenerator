@@ -4,7 +4,8 @@ public interface IASTTransformer<T> {
     ASTSequence VisitSequence(ASTSequence sequence, T state);
     ASTPlaceholder VisitPlaceholder(ASTPlaceholder placeholder, T state);
     ASTSequence TransformSequence(ASTSequence sequence, T state);
-    ASTToken VisitToken(ASTToken token, T state);
+    ASTStartToken VisitStartToken(ASTStartToken parserASTToken, T state);
+    ASTFinishToken VisitFinishToken(ASTFinishToken parserASTToken, T state);
     ASTNode VisitConstant(ASTConstant constant, T state);
 }
 
@@ -71,7 +72,7 @@ public class ASTTransformer<T> : IASTTransformer<T> {
     public virtual ASTPlaceholder WalkPlaceholder(ASTPlaceholder placeholder, T state) {
         var result = placeholder;
 
-        var nextStartToken = this.VisitToken(placeholder.StartToken, state);
+        var nextStartToken = this.VisitStartToken(placeholder.StartToken, state);
         if (ReferenceEquals(placeholder.StartToken, nextStartToken)) {
             // no change
         } else {
@@ -103,7 +104,7 @@ public class ASTTransformer<T> : IASTTransformer<T> {
             }
         }
 
-        var nextFinishToken = this.VisitToken(placeholder.FinishToken, state);
+        var nextFinishToken = this.VisitFinishToken(placeholder.FinishToken, state);
         if (ReferenceEquals(placeholder.FinishToken, nextFinishToken)) {
             // no change
         } else {
@@ -116,11 +117,15 @@ public class ASTTransformer<T> : IASTTransformer<T> {
     protected virtual ASTNode TransformPlaceholderChild(ASTPlaceholder placeholder, ASTNode item, int index, T state)
         => item.TransformerAccept(this, state);
 
-    // called by the ASTNode
-    public virtual ASTToken VisitToken(ASTToken token, T state)
-        => this.TransformToken(token, state);
+    public virtual ASTStartToken VisitStartToken(ASTStartToken startToken, T state)
+        => this.TransformStartToken(startToken, state);
 
-    // override this to change the behavior
-    public virtual ASTToken TransformToken(ASTToken token, T state)
-        => token;
+    public virtual ASTStartToken TransformStartToken(ASTStartToken startToken, T state)
+        => startToken;
+
+    public virtual ASTFinishToken VisitFinishToken(ASTFinishToken finishToken, T state)
+        => this.TransformStartToken(finishToken, state);
+
+    public virtual ASTFinishToken TransformStartToken(ASTFinishToken finishToken, T state)
+        => finishToken;
 }

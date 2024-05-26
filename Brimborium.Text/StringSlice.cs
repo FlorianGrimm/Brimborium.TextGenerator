@@ -168,7 +168,8 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
     }
 
     public bool IsNullOrWhiteSpace() {
-        if (this.Text == null) return true;
+        if (this.Text == null) { return true; }
+
         var offset = this.Range.Start.Value;
         var end = this.Range.End.Value;
         var length = end - offset;

@@ -2,9 +2,9 @@
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class ASTPlaceholder(
-    ASTToken startToken,
+    ASTStartToken startToken,
     List<ASTNode> list,
-    ASTToken finishToken
+    ASTFinishToken finishToken
     ) : ASTNode, IEnumerable<ASTNode> {
     public override void VisitorAccept<T>(IASTVisitor<T> visitor, T state)
         => visitor.VisitPlaceholder(this, state);
@@ -12,9 +12,9 @@ public sealed class ASTPlaceholder(
     public override ASTNode TransformerAccept<T>(IASTTransformer<T> transformer, T state)
         => transformer.VisitPlaceholder(this, state);
     
-    public ASTToken StartToken { get; set; } = startToken;
+    public ASTStartToken StartToken { get; set; } = startToken;
     public List<ASTNode> List { get; } = list;
-    public ASTToken FinishToken { get; set; } = finishToken;
+    public ASTFinishToken FinishToken { get; set; } = finishToken;
 
     public ASTPlaceholder Add(ASTNode item) {
         this.List.Add(item);
@@ -25,10 +25,10 @@ public sealed class ASTPlaceholder(
 
     public StringSlice Tag => this.StartToken.Tag;
 
-    public ASTPlaceholder WithStartToken(ASTToken startToken) 
+    public ASTPlaceholder WithStartToken(ASTStartToken startToken) 
         => new ASTPlaceholder(startToken, new List<ASTNode>(this.List), this.FinishToken);
 
-    public ASTPlaceholder WithFinishToken(ASTToken finishToken) 
+    public ASTPlaceholder WithFinishToken(ASTFinishToken finishToken) 
         => new ASTPlaceholder(this.StartToken, new List<ASTNode>(this.List), finishToken);
 
     public ASTPlaceholder WithList(List<ASTNode> list) 

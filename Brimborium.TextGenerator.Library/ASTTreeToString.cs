@@ -20,8 +20,20 @@ public sealed class ASTTreeToString : ASTVisitor<StringBuilder> {
         base.VisitConstant(parserASTConstant, state);
     }
 
-    public override void VisitToken(ASTToken parserASTToken, StringBuilder state) {
-        state.Append(parserASTToken.Complete);
-        base.VisitToken(parserASTToken, state);
+    public override void VisitStartToken(ASTStartToken startToken, StringBuilder state) {
+        state.Append("/* <").Append(startToken.Tag);
+        foreach(var parameter in startToken.ListParameter) {
+            if (parameter.Name.Contains(' ')) {
+                state.Append(" \"").Append(parameter.Name).Append('"');
+            } else { 
+                state.Append(' ').Append(parameter.Name);
+            }
+            state.Append("=\"").Append(parameter.Value).Append('"');
+        }
+        state.Append("> */");
+    }
+
+    public override void VisitFinishToken(ASTFinishToken finishToken, StringBuilder state) {
+        state.Append("/* </").Append(finishToken.Tag).Append("> */");
     }
 }
