@@ -36,4 +36,19 @@ public sealed class ASTTreeToString : ASTVisitor<StringBuilder> {
     public override void VisitFinishToken(ASTFinishToken finishToken, StringBuilder state) {
         state.Append("/* </").Append(finishToken.Tag).Append("> */");
     }
+
+    public override void VisitPlaceholder(ASTPlaceholder placeHolder, StringBuilder state) {
+        state.Append("/* <").Append(placeHolder.Tag);
+        foreach (var parameter in placeHolder.ListParameter) {
+            if (parameter.Name.Contains(' ')) {
+                state.Append(" \"").Append(parameter.Name).Append('"');
+            } else {
+                state.Append(' ').Append(parameter.Name);
+            }
+            state.Append("=\"").Append(parameter.Value).Append('"');
+        }
+        state.Append("> */");
+        this.WalkPlaceholder(placeHolder, state);
+        state.Append("/* </").Append(placeHolder.Tag).Append("> */");
+    }
 }

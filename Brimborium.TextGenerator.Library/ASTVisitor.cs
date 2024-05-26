@@ -1,20 +1,20 @@
 ﻿namespace Brimborium.TextGenerator;
 public interface IASTVisitor<T> {
-    void VisitConstant(ASTConstant parserASTConstant, T state);
-    void VisitPlaceholder(ASTPlaceholder parserASTPlaceHolder, T state);
-    void VisitSequence(ASTSequence parserASTSequence, T state);
+    void VisitConstant(ASTConstant constant, T state);
+    void VisitPlaceholder(ASTPlaceholder placeHolder, T state);
+    void VisitSequence(ASTSequence sequence, T state);
     void VisitStartToken(ASTStartToken startToken, T state);
     void VisitFinishToken(ASTFinishToken finishToken, T state);
 }
 
 public class ASTVisitor<T> : IASTVisitor<T> {
-    public virtual void VisitConstant(ASTConstant parserASTConstant, T state) { }
+    public virtual void VisitConstant(ASTConstant constant, T state) { }
 
-    public virtual void VisitSequence(ASTSequence parserASTSequence, T state)
-        => this.WalkSequence(parserASTSequence, state);
+    public virtual void VisitSequence(ASTSequence sequence, T state)
+        => this.WalkSequence(sequence, state);
 
-    public virtual void WalkSequence(ASTSequence parserASTSequence, T state) {
-        foreach(var item in parserASTSequence.List) {
+    public virtual void WalkSequence(ASTSequence sequence, T state) {
+        foreach(var item in sequence.ListItem) {
             item.VisitorAccept(this, state);
         }
     }
@@ -23,14 +23,12 @@ public class ASTVisitor<T> : IASTVisitor<T> {
 
     public virtual void VisitFinishToken(ASTFinishToken finishToken, T state) { }
 
-    public virtual void VisitPlaceholder(ASTPlaceholder parserASTPlaceHolder, T state)
-        => this.WalkPlaceholder(parserASTPlaceHolder, state);
+    public virtual void VisitPlaceholder(ASTPlaceholder placeHolder, T state)
+        => this.WalkPlaceholder(placeHolder, state);
 
-    public virtual void WalkPlaceholder(ASTPlaceholder parserASTPlaceHolder, T state) {
-        parserASTPlaceHolder.StartToken.VisitorAccept(this, state);
-        foreach (var item in parserASTPlaceHolder.List) {
+    public virtual void WalkPlaceholder(ASTPlaceholder placeHolder, T state) {
+        foreach (var item in placeHolder.ListItem) {
             item.VisitorAccept(this, state);
         }
-        parserASTPlaceHolder.FinishToken.VisitorAccept(this, state);
     }
 }

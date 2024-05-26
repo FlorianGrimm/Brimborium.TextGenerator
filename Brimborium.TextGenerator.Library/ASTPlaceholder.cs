@@ -2,44 +2,67 @@
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class ASTPlaceholder(
-    ASTStartToken startToken,
-    List<ASTNode> list,
-    ASTFinishToken finishToken
-    ) : ASTNode, IEnumerable<ASTNode> {
+    StringSlice tag,
+    ImmutableArray<ASTParameter> listParameter,
+    ImmutableArray<ASTNode> listItem
+    ) : ASTNode
+    //, IEnumerable<ASTNode>
+    {
     public override void VisitorAccept<T>(IASTVisitor<T> visitor, T state)
         => visitor.VisitPlaceholder(this, state);
-    
+
     public override ASTNode TransformerAccept<T>(IASTTransformer<T> transformer, T state)
         => transformer.VisitPlaceholder(this, state);
-    
-    public ASTStartToken StartToken { get; set; } = startToken;
-    public List<ASTNode> List { get; } = list;
-    public ASTFinishToken FinishToken { get; set; } = finishToken;
 
-    public ASTPlaceholder Add(ASTNode item) {
-        this.List.Add(item);
-        return this;
+    public StringSlice Tag { get; } = tag;
+    public ImmutableArray<ASTParameter> ListParameter { get; } = listParameter;
+    public ImmutableArray<ASTNode> ListItem { get; } = listItem;
+
+    public ASTNode this[int index] { get { return this.ListItem[index]; } }
+
+    //public ASTPlaceholder WithStartToken(ASTStartToken startToken) 
+    //    => new ASTPlaceholder(startToken, this.ListItem, this.FinishToken);
+
+    //public ASTPlaceholder WithFinishToken(ASTFinishToken finishToken) 
+    //    => new ASTPlaceholder(this.StartToken, new List<ASTNode>(this.ListItem), finishToken);
+
+    public ASTPlaceholder WithListItem(ImmutableArray<ASTNode> listItem)
+        => new ASTPlaceholder(this.Tag, this.ListParameter, listItem);
+
+    //public IEnumerator<ASTNode> GetEnumerator() => this.ListItem.GetEnumerator();
+    //IEnumerator IEnumerable.GetEnumerator() => this.ListItem.GetEnumerator();
+
+    public override string ToString() => $"ParserASTPlaceholder {this.Tag} #{this.ListItem.Length}";
+
+    private string GetDebuggerDisplay() => $"ParserASTPlaceholder {this.Tag} #{this.ListItem.Length}";
+
+    public Builder ToBuilder() {
+        return new Builder(this.Tag, this.ListParameter, this.ListItem);
     }
-    public ASTNode this[int index] { get { return this.List[index]; } }
-    public int Count { get { return this.List.Count; } }
+    public class Builder(StringSlice tag, ImmutableArray<ASTParameter> listParameter, ImmutableArray<ASTNode> listItem) {
+        private StringSlice _Tag = tag;
+        private ImmutableArray<ASTParameter> _OrginalListParameter = listParameter;
+        private ImmutableArray<ASTNode> _OrginalListItem = listItem;
 
-    public StringSlice Tag => this.StartToken.Tag;
+        private List<ASTParameter>? _ModifiedListParameter;
+        private List<ASTNode>? _ModifiedListItem;
 
-    public ASTPlaceholder WithStartToken(ASTStartToken startToken) 
-        => new ASTPlaceholder(startToken, new List<ASTNode>(this.List), this.FinishToken);
+        public StringSlice Tag { get => this._Tag; set => this._Tag = value; }
+        public List<ASTParameter> ListParameter {
+            get => (this._ModifiedListParameter ??= _OrginalListParameter.ToList());
+            set => this._ModifiedListParameter = value;
+        }
+        public List<ASTNode> ListItem {
+            get => (this._ModifiedListItem ??= this._OrginalListItem.ToList());
+            set => this._ModifiedListItem = value;
+        }
 
-    public ASTPlaceholder WithFinishToken(ASTFinishToken finishToken) 
-        => new ASTPlaceholder(this.StartToken, new List<ASTNode>(this.List), finishToken);
-
-    public ASTPlaceholder WithList(List<ASTNode> list) 
-        => new ASTPlaceholder(this.StartToken, list, this.FinishToken);
-
-    public IEnumerator<ASTNode> GetEnumerator() => this.List.GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => this.List.GetEnumerator();
-
-    public override string ToString() => $"ParserASTPlaceholder {this.StartToken.Tag} #{this.List.Count}";
-
-    private string GetDebuggerDisplay() => $"ParserASTPlaceholder {this.StartToken.Tag} #{this.List.Count}";
-
+        public ASTPlaceholder Build() {
+            return new ASTPlaceholder(
+                this._Tag, 
+                this._ModifiedListParameter?.ToImmutableArray() ?? this._OrginalListParameter, 
+                this._ModifiedListItem?.ToImmutableArray() ?? this._OrginalListItem);
+        }
+    }
 }
 

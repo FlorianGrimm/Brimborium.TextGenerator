@@ -8,7 +8,7 @@ public class ParserTests {
         Parser sut = Parser.CreateForCSharp();
         string content = "1/* <a> */2/* </a> */3";
         var act = sut.Scan(content);
-        Assert.Equal(5, act.Count);
+        Assert.Equal(5, act.ListItem.Length);
         Assert.Equal("1/* <a> */2/* </a> */3", ASTTreeToString.GetAsString(act));
     }
 
@@ -17,7 +17,7 @@ public class ParserTests {
         Parser sut = Parser.CreateForCSharp();
         string content = "1/* <a b=2> */2/* </a> */3";
         var act = sut.Scan(content);
-        Assert.Equal(5, act.Count);
+        Assert.Equal(5, act.ListItem.Length);
         Assert.Equal("""1/* <a b="2"> */2/* </a> */3""", ASTTreeToString.GetAsString(act));
     }
 
@@ -26,9 +26,9 @@ public class ParserTests {
         Parser sut = Parser.CreateForCSharp();
         string content = "1/* <a> */2/* </a> */3";
         var act = sut.Parse(content);
-        Assert.Equal(3, act.Count);
+        Assert.Equal(3, act.ListItem.Length);
         Assert.Equal("1/* <a> */2/* </a> */3", ASTTreeToString.GetAsString(act));
-        Assert.Equal(0, ((ASTPlaceholder)act.List[1]).StartToken.ListParameter.Count);
+        Assert.Equal(0, ((ASTPlaceholder)act.ListItem[1]).ListParameter.Length);
     }
 
     [Fact]
@@ -36,10 +36,10 @@ public class ParserTests {
         Parser sut = Parser.CreateForCSharp();
         string content = "1/* <a b=2 c=3> */2/* </a> */3";
         var act = sut.Parse(content);
-        Assert.Equal(3, act.Count);
+        Assert.Equal(3, act.ListItem.Length);
         Assert.Equal("""1/* <a b="2" c="3"> */2/* </a> */3""", ASTTreeToString.GetAsString(act));
-        Assert.Equal(2, ((ASTPlaceholder)act.List[1]).StartToken.ListParameter.Count);
-        Assert.Equal("b", ((ASTPlaceholder)act.List[1]).StartToken.ListParameter[0].Name.ToString());
-        Assert.Equal("c", ((ASTPlaceholder)act.List[1]).StartToken.ListParameter[1].Name.ToString());
+        Assert.Equal(2, ((ASTPlaceholder)act.ListItem[1]).ListParameter.Length);
+        Assert.Equal("b", ((ASTPlaceholder)act.ListItem[1]).ListParameter[0].Name.ToString());
+        Assert.Equal("c", ((ASTPlaceholder)act.ListItem[1]).ListParameter[1].Name.ToString());
     }
 }

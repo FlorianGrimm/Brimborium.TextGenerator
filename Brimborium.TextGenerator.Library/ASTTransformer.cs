@@ -25,23 +25,21 @@ public class ASTTransformer<T> : IASTTransformer<T> {
     public virtual ASTSequence WalkSequence(ASTSequence sequence, T state) {
         ASTSequence.Builder? builder = null;
 
-        for (int index = 0; index < sequence.List.Length; index++) {
-            var item = sequence.List[index];
+        for (int index = 0; index < sequence.ListItem.Length; index++) {
+            var item = sequence.ListItem[index];
             var itemResult = this.TransformSequenceChild(sequence, item, index, state);
             if (ReferenceEquals(item, itemResult)) {
                 // no change
                 if (builder is null) {
                     // no change before
                 } else {
-                    builder.List.Add(itemResult);
+                    builder.ListItem.Add(itemResult);
                 }
             } else {
                 if (builder is null) {
                     builder = sequence.ToBuilder(0..index);
-                    builder.List.Add(itemResult);
-                } else {
-                    builder.List.Add(itemResult);
                 }
+                builder.ListItem.Add(itemResult);
             }
         }
         return ((builder is not null) ? builder.Build() : sequence);
@@ -68,47 +66,32 @@ public class ASTTransformer<T> : IASTTransformer<T> {
         => this.WalkPlaceholder(placeholder, state);
 
     public virtual ASTPlaceholder WalkPlaceholder(ASTPlaceholder placeholder, T state) {
-        var result = placeholder;
+        ASTPlaceholder.Builder? builder = null;
 
-        var nextStartToken = this.VisitStartToken(placeholder.StartToken, state);
-        if (ReferenceEquals(placeholder.StartToken, nextStartToken)) {
-            // no change
-        } else {
-            result = new ASTPlaceholder(nextStartToken, placeholder.List, placeholder.FinishToken);
-        }
+        for (int index = 0; index < placeholder.ListItem.Length; index++) {
+            var item = placeholder.ListItem[index];
 
-        for (int index = 0; index < result.List.Count; index++) {
-            var item = result.List[index];
-
-            var itemResult = this.TransformPlaceholderChild(result, item, index, state);
+            var itemResult = this.TransformPlaceholderChild(placeholder, item, index, state);
             if (ReferenceEquals(item, itemResult)) {
                 // no change
-                if (ReferenceEquals(placeholder, result)) {
+                if (builder is null) {
                     // no change before
                 } else {
-                    result.List.Add(itemResult);
+                    builder.ListItem.Add(itemResult);
                 }
             } else {
-                if (ReferenceEquals(this, result)) {
-                    List<ASTNode> list = new();
-                    if (0 < index) {
-                        list.AddRange(placeholder.List[0..index]);
-                    }
-                    list.Add(itemResult);
-                    result = new ASTPlaceholder(placeholder.StartToken, list, placeholder.FinishToken);
-                } else {
-                    result.List.Add(itemResult);
+                if (builder is null) {
+                    builder = new ASTPlaceholder.Builder(placeholder.Tag, placeholder.ListParameter, placeholder.ListItem[0..index]);
                 }
+                builder.ListItem.Add(itemResult);
             }
         }
 
-        var nextFinishToken = this.VisitFinishToken(placeholder.FinishToken, state);
-        if (ReferenceEquals(placeholder.FinishToken, nextFinishToken)) {
-            // no change
+        if (builder is not null) {
+            return builder.Build();
         } else {
-            result = new ASTPlaceholder(result.StartToken, result.List, nextFinishToken);
+            return placeholder;
         }
-        return result;
     }
 
     // override this to change the behavior

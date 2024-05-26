@@ -30,42 +30,42 @@ public class Parser {
         Stack<ASTSequence.Builder> stack = new();
         ASTSequence.Builder current = new([]);
 
-        foreach (var item in listFlat) {
+        foreach (var item in listFlat.ListItem) {
             {
                 if (item is ASTStartToken startToken) {
                     stack.Push(current);
                     current = new ASTSequence.Builder([]);
-                    current.List.Add(startToken);
+                    current.ListItem.Add(startToken);
                     continue;
                 }
             }
             {
                 if (item is ASTFinishToken finishToken) {
-                    var list = current.List;
+                    var list = current.ListItem;
                     if ((list.Count == 0)
                         || !(list[0] is ASTStartToken startToken)) {
                         throw new InvalidOperationException($"No start tag {finishToken.Tag}");
                     }
                     list.RemoveAt(0);
                     var parserASTPlaceholder = new ASTPlaceholder(
-                        startToken,
-                        list,
-                        finishToken);
+                        startToken.Tag,
+                        startToken.ListParameter,
+                        list.ToImmutableArray());
 
                     current = stack.Pop();
-                    current.List.Add(parserASTPlaceholder);
+                    current.ListItem.Add(parserASTPlaceholder);
                     continue;
                 }
             }
             {
-                current.List.Add(item);
+                current.ListItem.Add(item);
             }
         }
         return current.Build();
     }
 
     public ASTSequence Scan(string content) {
-        ASTSequence result = new();
+        ASTSequence.Builder result = new([]);
         StringSlice ssContent = new StringSlice(content);
 
         int indexLast = 0;
@@ -74,23 +74,23 @@ public class Parser {
                 var contentBefore = ssContent.Substring(indexLast, match.Index - indexLast);
 
                 if (0 < contentBefore.Length) {
-                    result.Add(new ASTConstant(contentBefore));
+                    result.ListItem.Add(new ASTConstant(contentBefore));
                 }
             }
             var token = this.ScanMatch(ssContent, match);
-            result.Add(token);
+            result.ListItem.Add(token);
             indexLast = match.Index + match.Length;
         }
         {
             var contentRest = content.Substring(indexLast);
             if (!string.IsNullOrWhiteSpace(contentRest)) {
-                result.Add(new ASTConstant(contentRest));
+                result.ListItem.Add(new ASTConstant(contentRest));
             }
         }
-        return result;
+        return result.Build();
     }
 
-    private ASTNode ScanMatch(StringSlice ssContent, Match match) {
+    protected virtual ASTNode ScanMatch(StringSlice ssContent, Match match) {
         //                        1          2        3         4      5    6 
         //_regexCSharp ??= new(@"([/][*]\s*)([<][/]?)([^> \t]+)([^>]*)([>])(\s*[*][/])", RegexOptions.Compiled);
         //var complete = GetStringSliceFromMatch(ssContent, match, 0);
@@ -105,7 +105,7 @@ public class Parser {
             if (!parseParameterResult.Remainder.IsEmpty) {
                 throw new InvalidOperationException($"Syntax Error {parameter}");
             }
-            var startToken = new ASTStartToken(tag, parseParameterResult.ListParameter.ToImmutableList());
+            var startToken = new ASTStartToken(tag, parseParameterResult.ListParameter.ToImmutableArray());
             return startToken;
         }
     }

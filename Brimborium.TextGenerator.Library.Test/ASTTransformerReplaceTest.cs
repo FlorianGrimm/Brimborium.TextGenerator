@@ -6,7 +6,7 @@ public class ASTTransformerReplaceTest {
         Parser sut = Parser.CreateForCSharp();
         string content = "1/* <a> */2/* </a> */3";
         var act = sut.Parse(content);
-        Assert.Equal(3, act.Count);
+        Assert.Equal(3, act.ListItem.Length);
 
         Assert.Equal("1/* <a> */2/* </a> */3", ASTTreeToString.GetAsString(act));
 
@@ -15,7 +15,7 @@ public class ASTTransformerReplaceTest {
             var transformerReplace = new ASTTransformerReplace<int>(
                 replacePlaceholder: (transformer, placeholder, state) => {
                     if (placeholder.Tag.Equals("a", StringComparison.Ordinal)) {
-                        return placeholder.WithList([new ASTConstant("XXX")]);
+                        return placeholder.WithListItem([new ASTConstant("XXX")]);
                     }
                     return placeholder;
                 });
@@ -31,7 +31,7 @@ public class ASTTransformerReplaceTest {
         Parser sut = Parser.CreateForCSharp();
         string content = "1/* <a> */2/* </a> */3";
         var act = sut.Parse(content);
-        Assert.Equal(3, act.Count);
+        Assert.Equal(3, act.ListItem.Length);
         Assert.Equal("1/* <a> */2/* </a> */3", ASTTreeToString.GetAsString(act));
 
         ASTNode? actCopy = null;
@@ -39,7 +39,7 @@ public class ASTTransformerReplaceTest {
             var transformerReplace = new ASTTransformerReplace<int>(
                 replacePlaceholder: (transformer, placeholder, state) => {
                     if (placeholder.Tag.Equals("a", StringComparison.Ordinal)) {
-                        return placeholder.WithList([new ASTConstant("XXX")]);
+                        return placeholder.WithListItem([new ASTConstant("XXX")]);
                     }
                     return placeholder;
                 });
