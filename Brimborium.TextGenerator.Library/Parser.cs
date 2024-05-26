@@ -27,14 +27,14 @@ public class Parser {
     public ASTSequence Parse(string content) {
         var listFlat = this.Scan(content);
 
-        Stack<ASTSequence> stack = new();
-        ASTSequence current = new();
+        Stack<ASTSequence.Builder> stack = new();
+        ASTSequence.Builder current = new([]);
 
         foreach (var item in listFlat) {
             {
                 if (item is ASTStartToken startToken) {
                     stack.Push(current);
-                    current = new ASTSequence();
+                    current = new ASTSequence.Builder([]);
                     current.List.Add(startToken);
                     continue;
                 }
@@ -58,10 +58,10 @@ public class Parser {
                 }
             }
             {
-                current.Add(item);
+                current.List.Add(item);
             }
         }
-        return current;
+        return current.Build();
     }
 
     public ASTSequence Scan(string content) {

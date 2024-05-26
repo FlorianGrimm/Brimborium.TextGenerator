@@ -14,8 +14,7 @@ public class ASTVisitor<T> : IASTVisitor<T> {
         => this.WalkSequence(parserASTSequence, state);
 
     public virtual void WalkSequence(ASTSequence parserASTSequence, T state) {
-        for (int index = 0; index < parserASTSequence.List.Count; index++) {
-            var item = parserASTSequence.List[index];
+        foreach(var item in parserASTSequence.List) {
             item.VisitorAccept(this, state);
         }
     }

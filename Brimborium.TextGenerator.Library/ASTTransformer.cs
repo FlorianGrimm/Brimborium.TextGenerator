@@ -23,30 +23,28 @@ public class ASTTransformer<T> : IASTTransformer<T> {
 
     // call the children
     public virtual ASTSequence WalkSequence(ASTSequence sequence, T state) {
-        var result = sequence;
-        for (int index = 0; index < sequence.List.Count; index++) {
+        ASTSequence.Builder? builder = null;
+
+        for (int index = 0; index < sequence.List.Length; index++) {
             var item = sequence.List[index];
             var itemResult = this.TransformSequenceChild(sequence, item, index, state);
             if (ReferenceEquals(item, itemResult)) {
                 // no change
-                if (ReferenceEquals(sequence, result)) {
+                if (builder is null) {
                     // no change before
                 } else {
-                    result.List.Add(itemResult);
+                    builder.List.Add(itemResult);
                 }
             } else {
-                if (ReferenceEquals(sequence, result)) {
-                    result = new ASTSequence();
-                    if (0 < index) {
-                        result.List.AddRange(sequence.List[0..index]);
-                    }
-                    result.List.Add(itemResult);
+                if (builder is null) {
+                    builder = sequence.ToBuilder(0..index);
+                    builder.List.Add(itemResult);
                 } else {
-                    result.List.Add(itemResult);
+                    builder.List.Add(itemResult);
                 }
             }
         }
-        return result;
+        return ((builder is not null) ? builder.Build() : sequence);
     }
 
     // override this to change the behavior
