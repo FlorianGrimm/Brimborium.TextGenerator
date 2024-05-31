@@ -4,25 +4,34 @@ namespace Brimborium.TextGenerator;
 
 public class ParserTests {
     [Fact]
-    public void Parser01Scan() {
-        Parser sut = Parser.CreateForCSharp();
+    public void Parser01ScanSimple() {
+        Parser parser = Parser.CreateForCSharp();
         string content = "1/* <a> */2/* </a> */3";
-        var act = sut.Scan(content);
+        var act = parser.Scan(content);
         Assert.Equal(5, act.ListItem.Length);
         Assert.Equal("1/* <a> */2/* </a> */3", ASTTreeToString.GetAsString(act));
     }
 
     [Fact]
-    public void Parser02Scan() {
-        Parser sut = Parser.CreateForCSharp();
+    public void Parser02ScanParameter() {
+        Parser parser = Parser.CreateForCSharp();
         string content = "1/* <a b=2> */2/* </a> */3";
-        var act = sut.Scan(content);
+        var act = parser.Scan(content);
         Assert.Equal(5, act.ListItem.Length);
         Assert.Equal("""1/* <a b="2"> */2/* </a> */3""", ASTTreeToString.GetAsString(act));
     }
 
     [Fact]
-    public void Parser03Parse() {
+    public void Parser03ScanPostfix() {
+        Parser parser = Parser.CreateForCSharp();
+        string content = "1/* <a b=2 /> */3";
+        var act = parser.Scan(content);
+        Assert.Equal(3, act.ListItem.Length);
+        Assert.Equal("""1/* <a b="2"> *//* </a> */3""", ASTTreeToString.GetAsString(act));
+    }
+
+    [Fact]
+    public void Parser05ParseSimple() {
         Parser sut = Parser.CreateForCSharp();
         string content = "1/* <a> */2/* </a> */3";
         var act = sut.Parse(content);
@@ -32,7 +41,7 @@ public class ParserTests {
     }
 
     [Fact]
-    public void Parser04Parse() {
+    public void Parser06ParseParameter() {
         Parser sut = Parser.CreateForCSharp();
         string content = "1/* <a b=2 c=3> */2/* </a> */3";
         var act = sut.Parse(content);

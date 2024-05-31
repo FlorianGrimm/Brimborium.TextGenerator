@@ -1,8 +1,8 @@
-﻿using Brimborium.TextGenerator.Contracts;
-
-namespace Brimborium.TextGenerator;
+﻿namespace Brimborium.TextGenerator;
 
 public class Parser {
+    //private const string _X = @"""([/][*]\s*)([<][/]?)([^> \t]+)((?:\s+(?:(?:[A-Za-z0-9.:]+)|(?:[""][^""=]+[""]))\s*[=]\s*(?:(?:[A-Za-z0-9.:]+)|(?:[""][^""=]+[""])))*)([/]?[>])(\s*[*][/])""";
+    protected const string _RegexInner = """([<][/]?)([^> \t]+)((?:\s+(?:(?:[A-Za-z0-9.:]+)|(?:[""][^""=]+[""]))\s*[=]\s*(?:(?:[A-Za-z0-9.:]+)|(?:[""][^""=]+[""])))*)(?:\s*)([/]?[>])""";
     private readonly Regex _RegexStartEndComment;
 
     //
@@ -12,29 +12,36 @@ public class Parser {
 
     private static Regex? _regexCSharp;
     public static Parser CreateForCSharp() {
-        //                      1          2        3         4      5    6 
-        _regexCSharp ??= new(@"([/][*]\s*)([<][/]?)([^> \t]+)([^>]*)([>])(\s*[*][/])", RegexOptions.Compiled);
+        //                      1          2        3         4       5           6
+        //_regexCSharp ??= new(@"([/][*]\s*)([<][/]?)([^> \t]+)([^/>]*)([/]?[>])(\s*[*][/])", RegexOptions.Compiled);
+        _regexCSharp ??= new($@"([/][*]\s*){_RegexInner}(\s*[*][/])");
         return new Parser(_regexCSharp);
     }
 
     private static Regex? _regexPowershell;
     public static Parser CreateForPowershell() {
-        //                          1          2        3         4      5    6 
-        _regexPowershell ??= new(@"([<][#]\s*)([<][/]?)([^> \t]+)([^>]*)([>])(\s*[#][>])", RegexOptions.Compiled);
+        //                          1          2        3         4       5           6
+        //_regexPowershell ??= new(@"([<][#]\s*)([<][/]?)([^> \t]+)([^/>]*)([/]?[>])(\s*[#][>])", RegexOptions.Compiled);
+        _regexPowershell ??= new($@"([<][#]\s*){_RegexInner}(\s*[#][>])");
         return new Parser(_regexPowershell);
+    }
+
+    public TracedValue<ASTSequence> Parse(TracedValue<string> content) {
+        var result = this.Parse(content.Value);
+        return new TracedValue<ASTSequence>(result, content.ValueIdentity);
     }
 
     public ASTSequence Parse(string content) {
         var listFlat = this.Scan(content);
 
         Stack<ASTSequence.Builder> stack = new();
-        ASTSequence.Builder current = new([]);
+        ASTSequence.Builder current = new();
 
         foreach (var item in listFlat.ListItem) {
             {
                 if (item is ASTStartToken startToken) {
                     stack.Push(current);
-                    current = new ASTSequence.Builder([]);
+                    current = new ASTSequence.Builder();
                     current.ListItem.Add(startToken);
                     continue;
                 }
@@ -43,7 +50,7 @@ public class Parser {
                 if (item is ASTFinishToken finishToken) {
                     var list = current.ListItem;
                     if ((list.Count == 0)
-                        || !(list[0] is ASTStartToken startToken)) {
+                        || list[0] is not ASTStartToken startToken) {
                         throw new InvalidOperationException($"No start tag {finishToken.Tag}");
                     }
                     list.RemoveAt(0);
@@ -65,7 +72,7 @@ public class Parser {
     }
 
     public ASTSequence Scan(string content) {
-        ASTSequence.Builder result = new([]);
+        ASTSequence.Builder result = new();
         StringSlice ssContent = new StringSlice(content);
 
         int indexLast = 0;
@@ -91,13 +98,11 @@ public class Parser {
     }
 
     protected virtual ASTNode ScanMatch(StringSlice ssContent, Match match) {
-        //                        1          2        3         4      5    6 
-        //_regexCSharp ??= new(@"([/][*]\s*)([<][/]?)([^> \t]+)([^>]*)([>])(\s*[*][/])", RegexOptions.Compiled);
-        //var complete = GetStringSliceFromMatch(ssContent, match, 0);
-        var prefix = GetStringSliceFromMatch(ssContent, match, 2);
+        var prefix = GetStringSliceFromMatch(ssContent, match, 2).Equals("</");
         var tag = GetStringSliceFromMatch(ssContent, match, 3);
         var parameter = GetStringSliceFromMatch(ssContent, match, 4);
-        if (prefix.Equals("</")) {
+        var postfix = GetStringSliceFromMatch(ssContent, match, 5).Equals("/>");
+        if (prefix) {
             var finishToken = new ASTFinishToken(tag);
             return finishToken;
         } else {
@@ -105,8 +110,13 @@ public class Parser {
             if (!parseParameterResult.Remainder.IsEmpty) {
                 throw new InvalidOperationException($"Syntax Error {parameter}");
             }
-            var startToken = new ASTStartToken(tag, parseParameterResult.ListParameter.ToImmutableArray());
-            return startToken;
+            if (postfix) {
+                var placeholder = new ASTPlaceholder(tag, parseParameterResult.ListParameter.ToImmutableArray(), ImmutableArray<ASTNode>.Empty);
+                return placeholder;
+            } else {
+                var startToken = new ASTStartToken(tag, parseParameterResult.ListParameter.ToImmutableArray());
+                return startToken;
+            }
         }
     }
 
@@ -170,10 +180,3 @@ public class Parser {
     }
     // 
 }
-
-public record struct ASTParseParameterResult(
-    List<ASTParameter> ListParameter,
-    StringSlice Remainder
-    );
-
-public record class ASTParameter(StringSlice Name, StringSlice Value);

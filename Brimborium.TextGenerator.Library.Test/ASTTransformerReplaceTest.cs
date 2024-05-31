@@ -1,6 +1,6 @@
 ﻿namespace Brimborium.TextGenerator;
-public class ASTTransformerReplaceTest {
 
+public class ASTTransformerReplaceTest {
     [Fact]
     public void Replace01Parse() {
         Parser sut = Parser.CreateForCSharp();
@@ -16,8 +16,9 @@ public class ASTTransformerReplaceTest {
                 replacePlaceholder: (transformer, placeholder, state) => {
                     if (placeholder.Tag.Equals("a", StringComparison.Ordinal)) {
                         return placeholder.WithListItem([new ASTConstant("XXX")]);
+                    } else { 
+                        return placeholder;
                     }
-                    return placeholder;
                 });
             actCopy = act.TransformerAccept(transformerReplace, 0);
         }
@@ -40,8 +41,9 @@ public class ASTTransformerReplaceTest {
                 replacePlaceholder: (transformer, placeholder, state) => {
                     if (placeholder.Tag.Equals("a", StringComparison.Ordinal)) {
                         return placeholder.WithListItem([new ASTConstant("XXX")]);
+                    } else { 
+                        return placeholder;
                     }
-                    return placeholder;
                 });
             actCopy = act.TransformerAccept(transformerReplace, 0);
         }

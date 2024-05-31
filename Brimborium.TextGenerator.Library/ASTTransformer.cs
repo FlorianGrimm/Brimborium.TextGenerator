@@ -23,8 +23,16 @@ public class ASTTransformer<T> : IASTTransformer<T> {
 
     // call the children
     public virtual ASTSequence WalkSequence(ASTSequence sequence, T state) {
-        ASTSequence.Builder? builder = null;
-
+        ASTSequence.Builder builder = sequence.ToBuilder();
+        builder.ListItem = [];
+        for (int index = 0; index < sequence.ListItem.Length; index++) {
+            var item = sequence.ListItem[index];
+            var itemResult = this.TransformSequenceChild(sequence, item, index, state);
+            builder.ListItem.Add(itemResult);
+        }
+        return builder.Build();
+    }
+        /*
         for (int index = 0; index < sequence.ListItem.Length; index++) {
             var item = sequence.ListItem[index];
             var itemResult = this.TransformSequenceChild(sequence, item, index, state);
@@ -43,9 +51,9 @@ public class ASTTransformer<T> : IASTTransformer<T> {
             }
         }
         return ((builder is not null) ? builder.Build() : sequence);
-    }
+        */
 
-    // override this to change the behavior
+        // override this to change the behavior
     protected virtual ASTNode TransformSequenceChild(ASTSequence sequence, ASTNode item, int index, T state)
         => item.TransformerAccept(this, state);
 
@@ -80,18 +88,12 @@ public class ASTTransformer<T> : IASTTransformer<T> {
                     builder.ListItem.Add(itemResult);
                 }
             } else {
-                if (builder is null) {
-                    builder = new ASTPlaceholder.Builder(placeholder.Tag, placeholder.ListParameter, placeholder.ListItem[0..index]);
-                }
+                builder ??= new ASTPlaceholder.Builder(null, placeholder.Tag, placeholder.ListParameter, placeholder.ListItem[0..index]);
                 builder.ListItem.Add(itemResult);
             }
         }
 
-        if (builder is not null) {
-            return builder.Build();
-        } else {
-            return placeholder;
-        }
+        return builder?.Build() ?? placeholder;
     }
 
     // override this to change the behavior
