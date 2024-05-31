@@ -2,7 +2,7 @@
 
 [System.Diagnostics.DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public readonly struct StringSlice : IEquatable<StringSlice> {
-    public static StringSlice Empty => new StringSlice(string.Empty);
+    public static StringSlice Empty => new (string.Empty);
 
     // the text is not null
     [System.Text.Json.Serialization.JsonInclude()]
@@ -45,7 +45,7 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
             var end = this.Range.End.Value;
             var length = end - offset;
             if (index < 0) { throw new ArgumentOutOfRangeException(nameof(index)); }
-            if (length <= index) { throw new ArgumentOutOfRangeException(nameof(index)); }
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, length);
             return this.Text[offset + index];
         }
     }
@@ -55,7 +55,7 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
         var thisOffset = this.Range.Start.Value;
         var thisEnd = this.Range.End.Value;
         var thisLength = thisEnd - thisOffset;
-        if (thisLength < start) { throw new ArgumentOutOfRangeException(nameof(start)); }
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(start, thisLength);
         var nextRange = new Range(thisOffset + start, thisOffset + thisLength);
         return new StringSlice(
             this.Text,
@@ -64,8 +64,8 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
     }
 
     public StringSlice Substring(int start, int length) {
-        if (start < 0) { throw new ArgumentOutOfRangeException(nameof(start)); }
-        if (length < 0) { throw new ArgumentOutOfRangeException(nameof(length)); }
+        ArgumentOutOfRangeException.ThrowIfNegative(start);
+        ArgumentOutOfRangeException.ThrowIfNegative(length);
 
         var thisOffset = this.Range.Start.Value;
         var thisEnd = this.Range.End.Value;
@@ -100,7 +100,7 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
     }
 
     public StringSliceState GetTextAndRange()
-        => new StringSliceState(this.Text, this.Range);
+        => new (this.Text, this.Range);
 
     public void Deconstruct(out string text, out Range range) {
         text = this.Text;
@@ -423,7 +423,7 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
 
     public override int GetHashCode() => string.GetHashCode(this.AsSpan());
 
-    public CharEnumerator GetEnumerator() => new CharEnumerator(this.AsSpan());
+    public CharEnumerator GetEnumerator() => new (this.AsSpan());
 
     public StringSlice Replace(char from, char to) {
         if (0 == this.Length) { return this; }
@@ -443,7 +443,7 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
     public StringSlice ReadWhile(Func<char, int, bool> predicate) {
         var offset = this.Range.Start.Value;
         var end = this.Range.End.Value;
-        var length = end - offset;
+        // var length = end - offset;
         var found = false;
         for (int idx = offset; idx < end; idx++) {
             if (!predicate(this.Text[idx], idx)) {
@@ -486,7 +486,7 @@ public readonly struct StringSlice : IEquatable<StringSlice> {
     }
 
     public static implicit operator StringSlice(string? value)
-        => new StringSlice(value ?? string.Empty);
+        => new (value ?? string.Empty);
 
     public static bool operator ==(StringSlice left, StringSlice right) => left.Equals(right, StringComparison.Ordinal);
     public static bool operator !=(StringSlice left, StringSlice right) => !(left.Equals(right, StringComparison.Ordinal));

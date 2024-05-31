@@ -22,10 +22,10 @@ public class TransformerState(
     public TransformerState? Parent { get; } = parent;
 
     public virtual TransformerState With(ImmutableArray<ScopedNamedValue>? values, TransformerState? parent)
-        => new TransformerState(this.TransformerContext, values ?? this.ListNamedValue, parent ?? this.Parent);
+        => new (this.TransformerContext, values ?? this.ListNamedValue, parent ?? this.Parent);
 
     public virtual TransformerState WithValues(ImmutableArray<ScopedNamedValue> values)
-        => new TransformerState(this.TransformerContext, values, this.Parent);
+        => new (this.TransformerContext, values, this.Parent);
 
     public bool TryGetValue(StringSlice key, [MaybeNullWhen(false)] out ScopedNamedValue result) {
         foreach (var item in this.ListNamedValue) {

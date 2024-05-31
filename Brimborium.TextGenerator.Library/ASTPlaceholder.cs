@@ -17,7 +17,7 @@ public sealed class ASTPlaceholder(
     public ImmutableArray<ASTNode> ListItem { get; } = listItem;
 
     public ASTPlaceholder WithListItem(ImmutableArray<ASTNode> listItem)
-        => new ASTPlaceholder(this.Tag, this.ListParameter, listItem);
+        => new (this.Tag, this.ListParameter, listItem);
 
     public override bool Equals(object? obj) => obj is ASTPlaceholder other && this.Equals(other);
 

@@ -1,14 +1,10 @@
 ﻿namespace Brimborium.TextGenerator;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public sealed class ASTFinishToken : ASTNode, IEquatable<ASTFinishToken> {
-    private readonly StringSlice _Tag;
+public sealed class ASTFinishToken(StringSlice tag) : ASTNode(), IEquatable<ASTFinishToken> {
+    private readonly StringSlice _Tag = tag;
 
     public StringSlice Tag => this._Tag;
-
-    public ASTFinishToken(StringSlice tag) : base() {
-        this._Tag = tag;
-    }
 
     public override bool Equals(object? obj) => obj is ASTFinishToken other && this.Equals(other);
 

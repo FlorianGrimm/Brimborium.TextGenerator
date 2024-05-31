@@ -1,29 +1,31 @@
 ﻿namespace Brimborium.TextGenerator;
 
-public class Parser {
-    //private const string _X = @"""([/][*]\s*)([<][/]?)([^> \t]+)((?:\s+(?:(?:[A-Za-z0-9.:]+)|(?:[""][^""=]+[""]))\s*[=]\s*(?:(?:[A-Za-z0-9.:]+)|(?:[""][^""=]+[""])))*)([/]?[>])(\s*[*][/])""";
+public partial class Parser {
+    //                                 1..   2       3         4                                                                                                             5        ... 6
     protected const string _RegexInner = """([<][/]?)([^> \t]+)((?:\s+(?:(?:[A-Za-z0-9.:]+)|(?:[""][^""=]+[""]))\s*[=]\s*(?:(?:[A-Za-z0-9.:]+)|(?:[""][^""=]+[""])))*)(?:\s*)([/]?[>])""";
     private readonly Regex _RegexStartEndComment;
+
 
     //
     protected Parser(Regex regexStartEndComment) {
         this._RegexStartEndComment = regexStartEndComment;
     }
 
-    private static Regex? _regexCSharp;
+    [GeneratedRegex($@"([/][*]\s*){_RegexInner}(\s*[*][/])")]
+    private static partial Regex _regexCSharp();
+    //private static Regex _regexCSharp = new($@"([/][*]\s*){_RegexInner}(\s*[*][/])", RegexOptions.Compiled);
+
     public static Parser CreateForCSharp() {
-        //                      1          2        3         4       5           6
-        //_regexCSharp ??= new(@"([/][*]\s*)([<][/]?)([^> \t]+)([^/>]*)([/]?[>])(\s*[*][/])", RegexOptions.Compiled);
-        _regexCSharp ??= new($@"([/][*]\s*){_RegexInner}(\s*[*][/])");
-        return new Parser(_regexCSharp);
+        return new Parser(_regexCSharp());
     }
 
-    private static Regex? _regexPowershell;
+
+    //[GeneratedRegex(@"([<][#]\s*)([<][/]?)([^> \t]+)((?:\s+(?:(?:[A-Za-z0-9.:]+)|(?:[""][^""=]+[""]))\s*[=]\s*(?:(?:[A-Za-z0-9.:]+)|(?:[""][^""=]+[""])))*)(?:\s*)([/]?[>])(\s*[#][>])", RegexOptions.Compiled)]
+    [GeneratedRegex($@"([<][#]\s*){_RegexInner}(\s*[#][>])", RegexOptions.Compiled)]
+    private static partial Regex _regexPowershell();
+
     public static Parser CreateForPowershell() {
-        //                          1          2        3         4       5           6
-        //_regexPowershell ??= new(@"([<][#]\s*)([<][/]?)([^> \t]+)([^/>]*)([/]?[>])(\s*[#][>])", RegexOptions.Compiled);
-        _regexPowershell ??= new($@"([<][#]\s*){_RegexInner}(\s*[#][>])");
-        return new Parser(_regexPowershell);
+        return new Parser(_regexPowershell());
     }
 
     public TracedValue<ASTSequence> Parse(TracedValue<string> content) {
@@ -78,7 +80,7 @@ public class Parser {
         int indexLast = 0;
         for (var match = _RegexStartEndComment.Match(content); match.Success; match = match.NextMatch()) {
             {
-                var contentBefore = ssContent.Substring(indexLast, match.Index - indexLast);
+                var contentBefore = ssContent.Substring(indexLast..match.Index);
 
                 if (0 < contentBefore.Length) {
                     result.ListItem.Add(new ASTConstant(contentBefore));
@@ -89,9 +91,9 @@ public class Parser {
             indexLast = match.Index + match.Length;
         }
         {
-            var contentRest = content.Substring(indexLast);
-            if (!string.IsNullOrWhiteSpace(contentRest)) {
-                result.ListItem.Add(new ASTConstant(contentRest));
+            var ssContentRest = ssContent.Substring(indexLast);
+            if (ssContentRest.TrimStart().IsEmpty) {
+                result.ListItem.Add(new ASTConstant(ssContentRest));
             }
         }
         return result.Build();
@@ -178,5 +180,6 @@ public class Parser {
     private static StringSlice GetStringSliceFromMatch(StringSlice ssContent, Match match, int groupIndex) {
         return ssContent.Substring(match.Groups[groupIndex].Index, match.Groups[groupIndex].Length);
     }
+
     // 
 }
